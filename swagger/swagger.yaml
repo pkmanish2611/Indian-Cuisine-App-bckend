@@ -1,0 +1,423 @@
+openapi: 3.0.0
+info:
+  title: Indian Cuisine API
+  description: API for exploring Indian cuisine dishes with search and suggestion capabilities
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@indiancuisineapi.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://api.indiancuisine.com/v1
+    description: Production server
+tags:
+  - name: Authentication
+    description: User authentication operations
+  - name: Dishes
+    description: Operations related to Indian dishes
+  - name: Suggestions
+    description: Dish suggestion operations
+  - name: Admin
+    description: Administrative operations (requires admin privileges)
+paths:
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Authenticate user and get JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: admin
+                password:
+                  type: string
+                  example: admin123
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT token for authenticated requests
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      username:
+                        type: string
+                      role:
+                        type: string
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized - invalid credentials
+
+  /dishes:
+    get:
+      tags: [Dishes]
+      summary: Get all dishes with optional filtering
+      parameters:
+        - $ref: '#/components/parameters/nameFilter'
+        - $ref: '#/components/parameters/dietFilter'
+        - $ref: '#/components/parameters/stateFilter'
+        - $ref: '#/components/parameters/regionFilter'
+        - $ref: '#/components/parameters/flavorFilter'
+        - $ref: '#/components/parameters/courseFilter'
+        - $ref: '#/components/parameters/prepTimeFilter'
+        - $ref: '#/components/parameters/cookTimeFilter'
+      responses:
+        '200':
+          description: List of dishes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dish'
+    post:
+      tags: [Admin]
+      summary: Create a new dish (Admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DishInput'
+      responses:
+        '201':
+          description: Dish created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dish'
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - requires admin role
+
+  /dishes/search:
+    get:
+      tags: [Dishes]
+      summary: Search dishes by name, ingredients, or region
+      parameters:
+        - name: q
+          in: query
+          description: Search query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of matching dishes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dish'
+        '400':
+          description: Missing search query
+
+  /dishes/{name}:
+    get:
+      tags: [Dishes]
+      summary: Get dish by exact name match
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Dish details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dish'
+        '404':
+          description: Dish not found
+    patch:
+      tags: [Admin]
+      summary: Update a dish (Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DishUpdateInput'
+      responses:
+        '200':
+          description: Dish updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dish'
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - requires admin role
+        '404':
+          description: Dish not found
+    delete:
+      tags: [Admin]
+      summary: Delete a dish (Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Dish deleted successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - requires admin role
+        '404':
+          description: Dish not found
+
+  /dishes/suggestions/ingredients:
+    post:
+      tags: [Suggestions]
+      summary: Get dishes that can be made with given ingredients (Authenticated only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ingredients:
+                  type: array
+                  items:
+                    type: string
+                  example: ["rice flour", "coconut", "jaggery"]
+              required:
+                - ingredients
+      responses:
+        '200':
+          description: List of possible dishes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dish'
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+
+  /health:
+    get:
+      tags: [System]
+      summary: Health check endpoint
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Dish:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Biryani"
+        ingredients:
+          type: string
+          example: "Rice, Chicken, Spices, Yogurt"
+        diet:
+          type: string
+          enum: [vegetarian, non vegetarian]
+          example: "non vegetarian"
+        prep_time:
+          type: string
+          example: "30 mins"
+        cook_time:
+          type: string
+          example: "60 mins"
+        flavor_profile:
+          type: string
+          example: "spicy"
+        course:
+          type: string
+          example: "main course"
+        state:
+          type: string
+          example: "Telangana"
+        region:
+          type: string
+          example: "South India"
+      required:
+        - name
+        - ingredients
+        - diet
+    DishInput:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "New Dish"
+        ingredients:
+          type: string
+          example: "Ingredient1, Ingredient2"
+        diet:
+          type: string
+          enum: [vegetarian, non vegetarian]
+          example: "vegetarian"
+        prep_time:
+          type: string
+          example: "30 mins"
+        cook_time:
+          type: string
+          example: "60 mins"
+        flavor_profile:
+          type: string
+          example: "spicy"
+        course:
+          type: string
+          example: "main course"
+        state:
+          type: string
+          example: "State"
+        region:
+          type: string
+          example: "Region"
+      required:
+        - name
+        - ingredients
+        - diet
+    DishUpdateInput:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Updated Dish Name"
+        ingredients:
+          type: string
+          example: "Updated Ingredient1, Updated Ingredient2"
+        diet:
+          type: string
+          enum: [vegetarian, non vegetarian]
+          example: "non vegetarian"
+        prep_time:
+          type: string
+          example: "45 mins"
+        cook_time:
+          type: string
+          example: "75 mins"
+        flavor_profile:
+          type: string
+          example: "mild"
+        course:
+          type: string
+          example: "appetizer"
+        state:
+          type: string
+          example: "Updated State"
+        region:
+          type: string
+          example: "Updated Region"
+  parameters:
+    nameFilter:
+      name: name
+      in: query
+      description: Filter by dish name (partial match)
+      schema:
+        type: string
+    dietFilter:
+      name: diet
+      in: query
+      description: Filter by diet type
+      schema:
+        type: string
+        enum: [vegetarian, non vegetarian]
+    stateFilter:
+      name: state
+      in: query
+      description: Filter by state
+      schema:
+        type: string
+    regionFilter:
+      name: region
+      in: query
+      description: Filter by region
+      schema:
+        type: string
+    flavorFilter:
+      name: flavor_profile
+      in: query
+      description: Filter by flavor profile
+      schema:
+        type: string
+    courseFilter:
+      name: course
+      in: query
+      description: Filter by course
+      schema:
+        type: string
+    prepTimeFilter:
+      name: prep_time[gte]
+      in: query
+      description: Filter by minimum preparation time (minutes)
+      schema:
+        type: integer
+    cookTimeFilter:
+      name: cook_time[lte]
+      in: query
+      description: Filter by maximum cooking time (minutes)
+      schema:
+        type: integer
