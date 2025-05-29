@@ -10,11 +10,6 @@ A comprehensive REST API for exploring Indian cuisine dishes, their ingredients,
 - [Running the App](#running-the-app)
 - [API Endpoints](#api-endpoints)
 - [Documentation](#documentation)
-- [Project Structure](#project-structure)
-- [Testing](#testing)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Features ✨
 
@@ -85,35 +80,20 @@ A comprehensive REST API for exploring Indian cuisine dishes, their ingredients,
 
 The API will be available at http://localhost:3000/api
 
-API Endpoints 📡
-Method	Endpoint	                    Description	Auth Required
-GET	    /api/dishes	                    Get all dishes	No
-POST	/api/dishes	                    Create new dish	Admin
-GET	    /api/dishes/:name	            Get dish by name	No
-PATCH	/api/dishes/:name	            Update dish	Admin
-DELETE	/api/dishes/:name	            Delete dish	Admin
-POST	/api/suggestions/ingredients	Get dish suggestions	Yes
-POST	/api/auth/login	                   User login	No
+## API Endpoints 📡
+
+| Method | Endpoint                        | Description                | Auth Required |
+|--------|----------------------------------|----------------------------|----------------|
+| GET    | `/api/dishes`                   | Get all dishes             | No             |
+| POST   | `/api/dishes`                   | Create new dish            | Admin          |
+| GET    | `/api/dishes/:name`             | Get dish by name           | No             |
+| PATCH  | `/api/dishes/:name`             | Update dish                | Admin          |
+| DELETE | `/api/dishes/:name`             | Delete dish                | Admin          |
+| POST   | `/api/suggestions/ingredients`  | Get dish suggestions       | Yes            |
+| POST   | `/api/auth/login`               | User login                 | No             |
+
 
 ## Documentation 📚
     Interactive API documentation available at:
 
     http://localhost:3000/api-docs
-
-Project Structure 🏗️
-indian-cuisine-api/
-├── config/               # App configuration
-│   └── constants.js      # Constants and defaults
-├── controllers/          # Business logic
-├── data/                 # JSON data files
-├── middlewares/          # Custom middleware
-│   ├── auth.middleware.js
-│   └── validation.middleware.js
-├── models/               # Data models
-├── routes/               # Route definitions
-├── utils/                # Helper functions
-├── validations/          # Request validations
-├── app.js                # Express app setup
-├── server.js             # Server entry point
-├── swagger.yaml          # API spec
-└── package.json
