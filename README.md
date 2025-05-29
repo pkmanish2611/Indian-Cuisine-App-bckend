@@ -50,7 +50,7 @@ A comprehensive REST API for exploring Indian cuisine dishes, their ingredients,
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/indian-cuisine-api.git
+   git clone https://github.com/pkmanish2611/Indian-Cuisine-App-bckend.git
    cd indian-cuisine-api
 
 2. Install dependencies:
